@@ -45,12 +45,16 @@ if __name__ == '__main__':
         # Add processing timestamp
         df_with_timestamp = df_flattened.withColumn('processed_at', current_timestamp())
 
+        # Derive output filename from input
+        input_path = os.getenv('SPARK_APPLICATION_ARGS')
+        filename = os.path.basename(input_path)
+        
         # Store in Minio
         df_with_timestamp.write \
             .mode("overwrite") \
             .option("header", "true") \
             .option("delimiter", ",") \
-            .csv(f"s3a://crypto-market/transformed_prices")
+            .csv(f"s3a://crypto-market/transformed_{filename}")
             
     app()
     os.system('kill %d' % os.getpid())

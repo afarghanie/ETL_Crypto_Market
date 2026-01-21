@@ -5,3 +5,4 @@ requests
 apache-airflow-providers-amazon
 minio
 apache-airflow-providers-docker
+apache-airflow-providers-postgres
