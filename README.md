@@ -1,45 +1,210 @@
-Overview
-========
+#  Crypto Market ETL Pipeline
 
-Welcome to Astronomer! This project was generated after you ran 'astro dev init' using the Astronomer CLI. This readme describes the contents of the project, as well as how to run Apache Airflow on your local machine.
+A production-ready data engineering pipeline that extracts cryptocurrency market data, transforms it using Apache Spark, and loads it into PostgreSQL for visualization in Metabase.
 
-Project Contents
-================
+![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
+![Airflow](https://img.shields.io/badge/Apache%20Airflow-2.x-017CEE?logo=apacheairflow)
+![Spark](https://img.shields.io/badge/Apache%20Spark-3.x-E25A1C?logo=apachespark)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)
 
-Your Astro project contains the following files and folders:
+##  Overview
 
-- dags: This folder contains the Python files for your Airflow DAGs. By default, this directory includes one example DAG:
-    - `example_astronauts`: This DAG shows a simple ETL pipeline example that queries the list of astronauts currently in space from the Open Notify API and prints a statement for each astronaut. The DAG uses the TaskFlow API to define tasks in Python, and dynamic task mapping to dynamically print a statement for each astronaut. For more on how this DAG works, see our [Getting started tutorial](https://www.astronomer.io/docs/learn/get-started-with-airflow).
-- Dockerfile: This file contains a versioned Astro Runtime Docker image that provides a differentiated Airflow experience. If you want to execute other commands or overrides at runtime, specify them here.
-- include: This folder contains any additional files that you want to include as part of your project. It is empty by default.
-- packages.txt: Install OS-level packages needed for your project by adding them to this file. It is empty by default.
-- requirements.txt: Install Python packages needed for your project by adding them to this file. It is empty by default.
-- plugins: Add custom or community plugins for your project to this file. It is empty by default.
-- airflow_settings.yaml: Use this local-only file to specify Airflow Connections, Variables, and Pools instead of entering them in the Airflow UI as you develop DAGs in this project.
+This project implements a complete ETL (Extract, Transform, Load) pipeline for cryptocurrency market data using modern data engineering practices.
 
-Deploy Your Project Locally
-===========================
+### Pipeline Architecture
 
-Start Airflow on your local machine by running 'astro dev start'.
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   CoinGecko     │────▶│     MinIO       │────▶│   Apache        │────▶│   PostgreSQL    │────▶│    Metabase     │
+│   API           │     │   (Raw JSON)    │     │   Spark         │     │   (Warehouse)   │     │   (Dashboard)   │
+└─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘
+        │                       │                       │                       │                       │
+     Extract              Store Raw              Transform              Load Clean             Visualize
+```
 
-This command will spin up five Docker containers on your machine, each for a different Airflow component:
+### Data Flow
 
-- Postgres: Airflow's Metadata Database
-- Scheduler: The Airflow component responsible for monitoring and triggering tasks
-- DAG Processor: The Airflow component responsible for parsing DAGs
-- API Server: The Airflow component responsible for serving the Airflow UI and API
-- Triggerer: The Airflow component responsible for triggering deferred tasks
+1. **Check API Availability** - Sensor validates CoinGecko API is responsive
+2. **Extract** - Fetch top 10 cryptocurrencies by market cap
+3. **Store Raw** - Save JSON data to MinIO object storage
+4. **Transform** - Spark job flattens nested structures, adds timestamps
+5. **Load** - Insert cleaned data into PostgreSQL
+6. **Visualize** - Metabase dashboards for analysis
 
-When all five containers are ready the command will open the browser to the Airflow UI at http://localhost:8080/. You should also be able to access your Postgres Database at 'localhost:5432/postgres' with username 'postgres' and password 'postgres'.
+##  Tech Stack
 
-Note: If you already have either of the above ports allocated, you can either [stop your existing Docker containers or change the port](https://www.astronomer.io/docs/astro/cli/troubleshoot-locally#ports-are-not-available-for-my-local-airflow-webserver).
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| **Orchestration** | Apache Airflow | Workflow scheduling & monitoring |
+| **Data Source** | CoinGecko API | Real-time crypto market data |
+| **Object Storage** | MinIO | S3-compatible raw data lake |
+| **Processing** | Apache Spark | Distributed data transformation |
+| **Database** | PostgreSQL | Analytical data warehouse |
+| **Visualization** | Metabase | BI dashboards & reporting |
+| **Infrastructure** | Docker Compose | Container orchestration |
+| **CLI** | Astronomer CLI | Airflow deployment & management |
 
-Deploy Your Project to Astronomer
-=================================
+##  Data Collected
 
-If you have an Astronomer account, pushing code to a Deployment on Astronomer is simple. For deploying instructions, refer to Astronomer documentation: https://www.astronomer.io/docs/astro/deploy-code/
+The pipeline captures the following metrics for each cryptocurrency:
 
-Contact
-=======
+- **Identity**: `coin_id`, `symbol`, `name`
+- **Price**: `price_usd`, `high_24h`, `low_24h`
+- **Market**: `market_cap`, `volume_24h`
+- **Changes**: `price_change_24h`, `price_change_pct_24h`
+- **Timestamps**: `last_updated`, `extracted_at`
 
-The Astronomer CLI is maintained with love by the Astronomer team. To report a bug or suggest a change, reach out to our support.
+##  Quick Start
+
+### Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (8GB+ RAM recommended)
+- [Astronomer CLI](https://www.astronomer.io/docs/astro/cli/install-cli/)
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/ETL_Crypto_Market.git
+cd ETL_Crypto_Market
+
+# Start the entire stack
+astro dev start
+```
+
+### Access Services
+
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| **Airflow UI** | http://localhost:8080 | `admin` / `admin` |
+| **MinIO Console** | http://localhost:9001 | `minio` / `minio123` |
+| **Metabase** | http://localhost:3000 | Setup on first visit |
+| **Spark Master** | http://localhost:8082 | - |
+| **pgAdmin** | http://localhost:5050 | `admin@example.com` / `admin` |
+
+## 📁 Project Structure
+
+```
+.
+├── dags/
+│   └── crypto_market.py     # Main ETL DAG with TaskFlow API
+├── spark/
+│   ├── master/              # Spark master Dockerfile
+│   ├── worker/              # Spark worker Dockerfile
+│   └── notebooks/
+│       └── stock_transform/
+│           └── crypto_transform.py  # PySpark transformation script
+├── include/
+│   ├── data/                # Persistent data volumes
+│   └── sql/
+│       └── schema.sql       # PostgreSQL schema definition
+├── docker-compose.override.yml  # Additional services (MinIO, Spark, Metabase)
+├── airflow_settings.yaml    # Airflow connections & variables
+├── requirements.txt         # Python dependencies
+└── README.md
+```
+
+##  Configuration
+
+### Airflow Connections
+
+The pipeline uses these preconfigured connections:
+
+| Connection ID | Service | Description |
+|---------------|---------|-------------|
+| `coingecko_api` | CoinGecko | REST API endpoint |
+| `minio` | MinIO | S3-compatible storage |
+| `postgres_default` | PostgreSQL | Data warehouse |
+
+### Environment Variables
+
+Create a `.env` file (already gitignored):
+
+```env
+# Optional: API keys for higher rate limits
+COINCAP_API_KEY=your_key_here
+COINDESK_API_KEY=your_key_here
+```
+
+##  Pipeline Details
+
+### DAG Schedule
+
+The pipeline runs daily at midnight UTC (`0 0 * * *`).
+
+### Airflow Tasks
+
+```python
+check_api_availability >> fetch_top3_blockchain >> store_data >> transform_data >> load_data
+```
+
+| Task | Type | Description |
+|------|------|-------------|
+| `check_api_availability` | Sensor | Polls API until ready |
+| `fetch_top3_blockchain` | Task | Fetches top 10 coins |
+| `store_data` | Task | Saves JSON to MinIO |
+| `transform_data` | DockerOperator | Runs Spark job in container |
+| `load_data` | Task | Loads CSV into PostgreSQL |
+
+## 📈 Sample Metabase Queries
+
+Once data is loaded, create dashboards with queries like:
+
+```sql
+-- Top 5 coins by market cap
+SELECT name, symbol, price_usd, market_cap 
+FROM crypto_prices 
+WHERE extracted_at = (SELECT MAX(extracted_at) FROM crypto_prices)
+ORDER BY market_cap DESC 
+LIMIT 5;
+
+-- Price trend over time
+SELECT coin_id, extracted_at, price_usd 
+FROM crypto_prices 
+WHERE coin_id = 'bitcoin' 
+ORDER BY extracted_at;
+```
+
+##  Development
+
+### Restart Services
+
+```bash
+# Stop all containers
+astro dev stop
+
+# Kill and restart (useful for Spark issues)
+astro dev kill && astro dev start
+```
+
+### View Logs
+
+```bash
+# Airflow scheduler logs
+astro dev logs scheduler
+
+# All service logs
+astro dev logs
+```
+
+##  Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+##  License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+##  Acknowledgments
+
+- [CoinGecko](https://www.coingecko.com/) for the free cryptocurrency API
+- [Astronomer](https://www.astronomer.io/) for the Airflow managed platform
+- [Apache Airflow](https://airflow.apache.org/) community
+
+---
+
+ **Star this repo if you find it helpful!**

@@ -41,7 +41,7 @@ def crypto_market_dag():
         data={
             'vs_currency': 'usd',
             'order': 'market_cap_desc',
-            'per_page': 3,
+            'per_page': 10,
             'page': 1,
             'sparkline': False,
             'price_change_percentage': '24h'
