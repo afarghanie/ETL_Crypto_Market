@@ -9,3 +9,8 @@ airflow-webserver.pid
 webserver_config.py
 airflow.cfg
 airflow.db
+
+# Data directories (runtime data, not source code)
+include/data/minio/
+include/data/metabase/
+include/data/pgadmin/
