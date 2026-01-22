@@ -151,6 +151,10 @@ astro dev logs scheduler
 # All service logs
 astro dev logs
 ```
+ 
+## Dashboard Visualization with Metabase
+
+![Dashboard Visualization](./images/metabase_vis.png)
 
 ##  Contributing
 
