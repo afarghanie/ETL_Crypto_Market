@@ -13,14 +13,7 @@ This project implements a complete ETL (Extract, Transform, Load) pipeline for c
 
 ### Pipeline Architecture
 
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   CoinGecko     │────▶│     MinIO       │────▶│   Apache        │────▶│   PostgreSQL    │────▶│    Metabase     │
-│   API           │     │   (Raw JSON)    │     │   Spark         │     │   (Warehouse)   │     │   (Dashboard)   │
-└─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘
-        │                       │                       │                       │                       │
-     Extract              Store Raw              Transform              Load Clean             Visualize
-```
+![ETL Pipeline Architecture](./images/architecture1.jpg)
 
 ### Data Flow
 
