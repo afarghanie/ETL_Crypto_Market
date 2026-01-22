@@ -82,7 +82,7 @@ astro dev start
 | **Spark Master** | http://localhost:8082 | - |
 | **pgAdmin** | http://localhost:5050 | `admin@example.com` / `admin` |
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 .
@@ -116,15 +116,6 @@ The pipeline uses these preconfigured connections:
 | `minio` | MinIO | S3-compatible storage |
 | `postgres_default` | PostgreSQL | Data warehouse |
 
-### Environment Variables
-
-Create a `.env` file (already gitignored):
-
-```env
-# Optional: API keys for higher rate limits
-COINCAP_API_KEY=your_key_here
-COINDESK_API_KEY=your_key_here
-```
 
 ##  Pipeline Details
 
@@ -145,25 +136,6 @@ check_api_availability >> fetch_top3_blockchain >> store_data >> transform_data 
 | `store_data` | Task | Saves JSON to MinIO |
 | `transform_data` | DockerOperator | Runs Spark job in container |
 | `load_data` | Task | Loads CSV into PostgreSQL |
-
-## 📈 Sample Metabase Queries
-
-Once data is loaded, create dashboards with queries like:
-
-```sql
--- Top 5 coins by market cap
-SELECT name, symbol, price_usd, market_cap 
-FROM crypto_prices 
-WHERE extracted_at = (SELECT MAX(extracted_at) FROM crypto_prices)
-ORDER BY market_cap DESC 
-LIMIT 5;
-
--- Price trend over time
-SELECT coin_id, extracted_at, price_usd 
-FROM crypto_prices 
-WHERE coin_id = 'bitcoin' 
-ORDER BY extracted_at;
-```
 
 ##  Development
 
@@ -207,4 +179,4 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
- **Star this repo if you find it helpful!**
+ **Alavie I. Farghanie - Data Engineer Enthusiast**
